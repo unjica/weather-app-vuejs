@@ -1,26 +1,156 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div class="app" :style="{ 'background-image': 'linear-gradient( rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2) ), url('+ require(`./assets/${getWeatherDescription}_${getDailyTimezone}.jpg`) + ')'}">
+    <loader v-if="loading" />
+    <error-popup class="wrapper" v-if="error" :message="errorMsg" />
+    
+    <search-bar
+      :dataList="searchedCities"
+      :toDo="getCityWeather"
+      placeholder="Enter city name"
+      buttonValue="Search" />
+
+    <weather-widget
+      :city="weatherWidgetData?.name"
+      :icon="weatherWidgetData?.weatherIcon"
+      :temp="weatherWidgetData?.temp"
+      :tempMax="weatherWidgetData?.tempMax"
+      :tempMin="weatherWidgetData?.tempMin"
+      :feelsLike="weatherWidgetData?.feelsLike"
+      :weatherDescription="weatherWidgetData?.weatherDescription" />
+      
+    <div class="wrapper">
+      <info-box
+        v-for="(detail, i, index) in weatherDetails"
+        :style="index === 0 && 'border-top-left-radius: 15px; border-top-right-radius: 15px'"
+        :key="i"
+        :title="detail?.title"
+        :val="detail?.val"
+        :iconSrc="detail?.icon" />
+    </div>
+  </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import { mapState } from 'vuex'
+import SearchBar from './components/SearchBar'
+import WeatherWidget from './components/WeatherWidget'
+import InfoBox from './components/InfoBox'
+import Loader from './components/Loader'
+import ErrorPopup from './components/ErrorPopup'
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    SearchBar,
+    WeatherWidget,
+    InfoBox,
+    Loader,
+    ErrorPopup
+  },
+  computed: {
+    ...mapState(['loading', 'weatherDetails', 'weatherWidgetData', 'time', 'error', 'searchedCities', 'errorMsg']),
+    getDailyTimezone() {
+      let sunrise = Number(this.weatherDetails?.sunrise?.val.substr(0, this.weatherDetails.sunrise.val.indexOf(':')))
+      let sunset = Number(this.weatherDetails?.sunset?.val.substr(0, this.weatherDetails.sunset.val.indexOf(':')))
+
+      switch (true) {
+        case this.time === sunset:
+          return 'sunset'
+        case this.time === sunrise:
+          return 'sunrise'
+        case this.time > sunset || this.time < sunrise:
+          return 'night'
+        default:
+          return 'day'
+      }
+    },
+    getWeatherDescription() {
+      let weatherDescription = this.weatherWidgetData?.weatherDescription
+
+      switch (weatherDescription) {
+        case 'Clouds':
+          return 'cloudy'
+        case 'Clear':
+          return 'sunny'
+        case 'Rain' || 'Drizzle' || 'Thunderstorm':
+          return 'rainy'
+        case 'Snow':
+          return 'snowy'
+        default:
+          return 'mist'
+      }
+    }
+  },
+  methods: {
+    getCityWeather(city) {
+      this.$store.dispatch('getCityWeather', city)
+    }
+  },
+  created() {
+    this.getCityWeather()
   }
 }
 </script>
 
 <style>
+:root {
+  font-size: 18px;
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+.app {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+  color: #dbdbdb;
+}
+.wrapper {
+  width: 100%;
+  max-width: 800px;
+}
+.flex {
+  display: flex;
+  justify-content: center;
+  align-items: center
+}
+.icon {
+  width: 45px;
+  height: 45px;
+}
+input {
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0);
+  color: #a6a6a6;
+  border: none;
+  padding: 15px 30px;
+  border-right: 1px solid #737373;
+  font-size: 1rem;
+  outline: none;
+}
+button {
+  outline: none;
+  padding: 15px 30px;
+  border: none;
+  background-color: rgba(0, 0, 0, 0);
+  color: #a6a6a6;
+  font-size: 1rem;
+}
+.container {
+  background-color: rgba(0, 0, 0, 0.3);
+  width: 100%;
 }
 </style>
