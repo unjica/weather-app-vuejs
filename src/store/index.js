@@ -15,7 +15,7 @@ export default createStore({
     loading: true,
     weatherWidgetData: null,
     weatherDetails: null,
-    time: new Date().getHours(),
+    currentHour: new Date().getHours(),
     error: false,
     searchedCities: [],
     errorMsg: ''
@@ -47,7 +47,7 @@ export default createStore({
   actions: {
     getCityWeather: ({ commit }, city = 'Ljubljana') => {
       commit('SET_LOADING', true)
-      axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${process.env.VUE_APP_OPENWEATHERMAP_API}`)
+      axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${process.env.VUE_APP_OPENWEATHERMAP_API_KEY}`)
         .then(res => {
           const weatherWidgetData = {
             name: res.data.name,
@@ -86,7 +86,11 @@ export default createStore({
           commit('ADD_CITY', city)
         })
         .catch(() => {
-          commit('SET_ERROR_MSG', city + ' does not exist')
+          if (city.length < 1) {
+            commit('SET_ERROR_MSG', 'The city name cannot be empty')
+          } else {
+            commit('SET_ERROR_MSG', city + ' does not exist')
+          }
           commit('SET_ERROR', true)
           setTimeout(() => {
             commit('SET_ERROR', false)

@@ -19,7 +19,7 @@ vue.js
     - current weather's condition (rain, sleet, snow ..etc).
     - current weather's description.
     - current weather's info (humidity, wind speed, sunset and sunrise time.
-    - Background picture is based on current time zone (day, night, sunset, sunrise) and current weather's condition (snow, rain, sun, clouds, mist)
+    - background picture is based on current time zone (day, night, sunset, sunrise) and current weather's condition (snow, rain, sun, clouds, mist)
     - saves last five successful searches and displays them in dropdown on search input
 
 ## Project setup

@@ -1,5 +1,5 @@
 <template>
-  <div class="app" :style="{ 'background-image': 'linear-gradient( rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2) ), url('+ require(`./assets/${getWeatherDescription}_${getDailyTimezone}.jpg`) + ')'}">
+  <div class="app" :style="{ 'background-image': 'linear-gradient( rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2) ), url('+ require(`./assets/${getCurrentWeatherDescription}_${getCurrentTimezone}.jpg`) + ')'}">
     <loader v-if="loading" />
     <error-popup class="wrapper" v-if="error" :message="errorMsg" />
     
@@ -48,23 +48,23 @@ export default {
     ErrorPopup
   },
   computed: {
-    ...mapState(['loading', 'weatherDetails', 'weatherWidgetData', 'time', 'error', 'searchedCities', 'errorMsg']),
-    getDailyTimezone() {
-      let sunrise = Number(this.weatherDetails?.sunrise?.val.substr(0, this.weatherDetails.sunrise.val.indexOf(':')))
-      let sunset = Number(this.weatherDetails?.sunset?.val.substr(0, this.weatherDetails.sunset.val.indexOf(':')))
+    ...mapState(['loading', 'weatherDetails', 'weatherWidgetData', 'currentHour', 'error', 'searchedCities', 'errorMsg']),
+    getCurrentTimezone() {
+      let sunriseHour = Number(this.weatherDetails?.sunrise?.val.substr(0, this.weatherDetails.sunrise.val.indexOf(':')))
+      let sunsetHour = Number(this.weatherDetails?.sunset?.val.substr(0, this.weatherDetails.sunset.val.indexOf(':')))
 
       switch (true) {
-        case this.time === sunset:
+        case this.currentHour === sunsetHour:
           return 'sunset'
-        case this.time === sunrise:
+        case this.currentHour === sunriseHour:
           return 'sunrise'
-        case this.time > sunset || this.time < sunrise:
+        case this.currentHour > sunsetHour || this.currentHour < sunriseHour:
           return 'night'
         default:
           return 'day'
       }
     },
-    getWeatherDescription() {
+    getCurrentWeatherDescription() {
       let weatherDescription = this.weatherWidgetData?.weatherDescription
 
       switch (weatherDescription) {
@@ -93,6 +93,11 @@ export default {
 </script>
 
 <style>
+@font-face {
+  font-family: Luxia-Regular;
+  src: url('./font/Luxia-Regular.otf');
+}
+
 :root {
   font-size: 18px;
 }
@@ -113,7 +118,7 @@ export default {
   background-repeat: no-repeat;
 }
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
+  font-family: Luxia-Regular, Avenir, Helvetica, Arial, sans-serif;
   text-align: center;
   color: #dbdbdb;
 }
