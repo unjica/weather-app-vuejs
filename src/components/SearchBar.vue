@@ -4,7 +4,7 @@
     <datalist id="list">
       <option v-for="(data, i) in dataList" :value="data" :key="i" />
     </datalist>
-    <button @click="toDo(val), val = ''">{{ buttonValue }}</button>  
+    <button @click="search(val), val = ''">{{ buttonValue }}</button>  
   </div>
 </template>
 
@@ -19,9 +19,14 @@ export default {
   props: {
     placeholder: String,
     buttonValue: String,
-    dataList: Array,
-    toDo: Function
+    dataList: Array
+  },
+  methods: {
+    search(val) {
+      this.$emit('onSearch', val);
+    }
   }
+
 }
 </script>
 

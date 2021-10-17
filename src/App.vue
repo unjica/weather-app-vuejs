@@ -5,7 +5,7 @@
     
     <search-bar
       :dataList="searchHistory"
-      :toDo="getCityWeather"
+      @onSearch="getCityWeather"
       placeholder="Enter city name"
       buttonValue="Search" />
 
