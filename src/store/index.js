@@ -17,7 +17,7 @@ export default createStore({
     weatherDetails: null,
     currentHour: new Date().getHours(),
     error: false,
-    searchedCities: [],
+    searchHistory: [],
     errorMsg: ''
   },
   mutations: {
@@ -39,64 +39,68 @@ export default createStore({
     SET_ERROR_MSG(state, errorMsg) {
       state.errorMsg = errorMsg
     },
-    ADD_CITY(state, city) {
-      !state.searchedCities.includes(city) && state.searchedCities.push(city)
-      state.searchedCities.length > 5 && state.searchedCities.shift()
+    ADD_CITY_TO_SUCCESSFUL_SEARCHES(state, city) {
+      !state.searchHistory.includes(city) && state.searchHistory.push(city)
+
+      // not grater than five
+      state.searchHistory.length > 5 && state.searchHistory.shift()
     }
   },
   actions: {
-    getCityWeather: ({ commit }, city = 'Ljubljana') => {
+    getCityWeather: ({ commit, dispatch }, city = 'Ljubljana') => {
       commit('SET_LOADING', true)
       axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${process.env.VUE_APP_OPENWEATHERMAP_API_KEY}`)
-        .then(res => {
-          const weatherWidgetData = {
-            name: res.data.name,
-            temp: (res.data.main.temp-273.15).toFixed(),
-            tempMax: (res.data.main.temp_max-273.15).toFixed(),
-            tempMin: (res.data.main.temp_min-273.15).toFixed(),
-            feelsLike: (res.data.main.feels_like-273.15).toFixed(),
-            weatherDescription: res.data.weather[0].main,
-            weatherIcon: res.data.weather[0]?.icon
-          }
-          commit('SET_WEATHER_WIDGET_DATA', weatherWidgetData)
-          
-          const weatherDetails = {
-            humidity: {
-              title: 'Humidity',
-              val: res.data.main.humidity + '%',
-              icon: 'humidity.png'
-            },
-            sunset: {
-              title: 'Sunset',
-              val: unixTimestampFormat(res.data.sys.sunset),
-              icon: 'sunset.png'
-            },
-            sunrise: {
-              title: 'Sunrise',
-              val: unixTimestampFormat(res.data.sys.sunrise),
-              icon: 'sunrise.png'
-            },
-            wind: {
-              title: 'Wind',
-              val: (res.data.wind.speed* 3.6).toFixed(1) + 'km/h',
-              icon: 'wind.png'
-            }
-          }
-          commit('SET_WEATHER_DETAILS', weatherDetails)
-          commit('ADD_CITY', city)
-        })
+        .then(res => dispatch('setCurrentWeatherData', res.data))
         .catch(() => {
-          if (city.length < 1) {
-            commit('SET_ERROR_MSG', 'The city name cannot be empty')
-          } else {
-            commit('SET_ERROR_MSG', city + ' does not exist')
-          }
-          commit('SET_ERROR', true)
-          setTimeout(() => {
-            commit('SET_ERROR', false)
-          }, 2000)
+          dispatch('setErrorMessage', city)
+          dispatch('displayErrorInPopup')
         })
         .finally(() => commit('SET_LOADING', false))
+    },
+    setErrorMessage: ({ commit }, input) => {
+      commit('SET_ERROR_MSG', input ? `${input} does not exist` : 'The city name cannot be empty')
+    },
+    displayErrorInPopup: ({ commit }) => {
+      commit('SET_ERROR', true)
+      setTimeout(() => {
+        commit('SET_ERROR', false)
+      }, 2000)
+    },
+    setCurrentWeatherData: ({ commit }, data) => {
+      commit('SET_WEATHER_WIDGET_DATA', {
+        name: data.name,
+        temp: (data.main.temp-273.15).toFixed(),
+        tempMax: (data.main.temp_max-273.15).toFixed(),
+        tempMin: (data.main.temp_min-273.15).toFixed(),
+        feelsLike: (data.main.feels_like-273.15).toFixed(),
+        weatherDescription: data.weather[0].main,
+        weatherIcon: data.weather[0]?.icon
+      })
+      
+      commit('SET_WEATHER_DETAILS', {
+        humidity: {
+          title: 'Humidity',
+          val: data.main.humidity + '%',
+          icon: 'humidity.png'
+        },
+        sunset: {
+          title: 'Sunset',
+          val: unixTimestampFormat(data.sys.sunset),
+          icon: 'sunset.png'
+        },
+        sunrise: {
+          title: 'Sunrise',
+          val: unixTimestampFormat(data.sys.sunrise),
+          icon: 'sunrise.png'
+        },
+        wind: {
+          title: 'Wind',
+          val: (data.wind.speed* 3.6).toFixed(1) + 'km/h',
+          icon: 'wind.png'
+        }
+      })
+      
+      commit('ADD_CITY_TO_SUCCESSFUL_SEARCHES', data.name)
     }
   },
   getters: {
@@ -109,8 +113,8 @@ export default createStore({
     weatherDetails: state => {
       return state.weatherDetails
     },
-    searchedCities: state => {
-      return state.searchedCities
+    searchHistory: state => {
+      return state.searchHistory
     },
     errorMsg: state => {
       return state.errorMsg

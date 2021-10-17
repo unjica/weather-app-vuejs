@@ -4,7 +4,7 @@
     <error-popup class="wrapper" v-if="error" :message="errorMsg" />
     
     <search-bar
-      :dataList="searchedCities"
+      :dataList="searchHistory"
       :toDo="getCityWeather"
       placeholder="Enter city name"
       buttonValue="Search" />
@@ -48,7 +48,7 @@ export default {
     ErrorPopup
   },
   computed: {
-    ...mapState(['loading', 'weatherDetails', 'weatherWidgetData', 'currentHour', 'error', 'searchedCities', 'errorMsg']),
+    ...mapState(['loading', 'weatherDetails', 'weatherWidgetData', 'currentHour', 'error', 'searchHistory', 'errorMsg']),
     getCurrentTimezone() {
       let sunriseHour = Number(this.weatherDetails?.sunrise?.val.substr(0, this.weatherDetails.sunrise.val.indexOf(':')))
       let sunsetHour = Number(this.weatherDetails?.sunset?.val.substr(0, this.weatherDetails.sunset.val.indexOf(':')))
