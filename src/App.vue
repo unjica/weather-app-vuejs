@@ -1,7 +1,7 @@
 <template>
   <div class="app" :style="{ 'background-image': 'linear-gradient( rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2) ), url('+ require(`./assets/${getCurrentWeatherDescription}_${getCurrentTimezone}.jpg`) + ')'}">
     <loader v-if="loading" />
-    <error-popup class="wrapper" v-if="error" :message="errorMsg" />
+    <error-popup class="wrapper" v-if="displayError" :message="errorMsg" />
     
     <search-bar
       :dataList="searchHistory"
@@ -48,7 +48,7 @@ export default {
     ErrorPopup
   },
   computed: {
-    ...mapState(['loading', 'weatherDetails', 'weatherWidgetData', 'currentHour', 'error', 'searchHistory', 'errorMsg']),
+    ...mapState(['loading', 'weatherDetails', 'weatherWidgetData', 'currentHour', 'displayError', 'searchHistory', 'errorMsg']),
     getCurrentTimezone() {
       let sunriseHour = Number(this.weatherDetails?.sunrise?.val.substr(0, this.weatherDetails.sunrise.val.indexOf(':')))
       let sunsetHour = Number(this.weatherDetails?.sunset?.val.substr(0, this.weatherDetails.sunset.val.indexOf(':')))

@@ -16,7 +16,7 @@ export default createStore({
     weatherWidgetData: null,
     weatherDetails: null,
     currentHour: new Date().getHours(),
-    error: false,
+    displayError: false,
     searchHistory: [],
     errorMsg: ''
   },
@@ -33,10 +33,11 @@ export default createStore({
     SET_WEATHER_DETAILS(state, data) {
       state.weatherDetails = data
     },
-    SET_ERROR(state, error) {
-      state.error = error
+    DISPLAY_ERROR(state, show) {
+      console.log(show)
+      state.displayError = show
     },
-    SET_ERROR_MSG(state, errorMsg) {
+    SET_ERROR_MSG(state, errorMsg = 'Something went wrong.') {
       state.errorMsg = errorMsg
     },
     ADD_CITY_TO_SUCCESSFUL_SEARCHES(state, city) {
@@ -49,22 +50,24 @@ export default createStore({
   actions: {
     getCityWeather: ({ commit, dispatch }, city = 'Ljubljana') => {
       commit('SET_LOADING', true)
+
       axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${process.env.VUE_APP_OPENWEATHERMAP_API_KEY}`)
-        .then(res => dispatch('setCurrentWeatherData', res.data))
-        .catch(() => {
-          dispatch('setErrorMessage', city)
-          dispatch('displayErrorInPopup')
-        })
-        .finally(() => commit('SET_LOADING', false))
+      .then(res => dispatch('setCurrentWeatherData', res.data))
+      .catch(err => {
+        dispatch('setErrorMessage', 
+        !err.response ? 'No internet connection.' :
+        city ? `${city} does not exist.` : 
+        'The city name cannot be empty.')
+
+        commit('DISPLAY_ERROR', true)
+        setTimeout(() => {
+          commit('DISPLAY_ERROR', false)
+        }, 2000)
+      })
+      .finally(() => commit('SET_LOADING', false))
     },
-    setErrorMessage: ({ commit }, input) => {
-      commit('SET_ERROR_MSG', input ? `${input} does not exist` : 'The city name cannot be empty')
-    },
-    displayErrorInPopup: ({ commit }) => {
-      commit('SET_ERROR', true)
-      setTimeout(() => {
-        commit('SET_ERROR', false)
-      }, 2000)
+    setErrorMessage: ({ commit }, msg) => {
+      commit('SET_ERROR_MSG', msg)
     },
     setCurrentWeatherData: ({ commit }, data) => {
       commit('SET_WEATHER_WIDGET_DATA', {
@@ -118,6 +121,9 @@ export default createStore({
     },
     errorMsg: state => {
       return state.errorMsg
+    },
+    displayError: state => {
+      return state.displayError
     }
   },
   modules: {
